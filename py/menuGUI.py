@@ -19,7 +19,15 @@ class menuGUI(QtWidgets.QMainWindow):
 
     def showQualiGUI(self):
         from qualiGUI import qualiGUI
+        from sim import fileSetup, simulate
         self.quali = qualiGUI()
+
+
+        data = fileSetup()
+        #self.quali.table = QtWidgets.QTableView()
+        #self.quali.model = menuGUI(data)
+        #self.quali.table.setModel(self.model)
+       # self.quali.setCentralWidget(self.table)
         self.quali.show()
 
     def showRandomGUI(self):

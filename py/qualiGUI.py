@@ -8,8 +8,6 @@ class qualiGUI(QtWidgets.QMainWindow):
 
 
         #TODO load quali results
-        
-
 
 
 

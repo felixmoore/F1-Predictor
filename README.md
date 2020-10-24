@@ -12,7 +12,9 @@ I used [pandas](https://pandas.pydata.org/) to generate average qualifying and r
 
 Those averages are then smashed together, weighted more towards the car than the driver - since even the best driver probably couldn't win in the worst car on the grid.
 
-## How to try it out
+## How to try it out?
+
+Make sure Python and [pandas](https://pandas.pydata.org/pandas-docs/stable/getting_started/install.html) are installed. Run `sim.py`!
 
 `config.csv` contains the data for this year's grid, if you'd like to see that. There's also a file for 2016's grid in the `data` folder.
 Alternatively, you could pick some teams and drivers using the IDs in the `data` folder, or ask the program to generate some random combinations for you.

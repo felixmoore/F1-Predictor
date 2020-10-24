@@ -3,21 +3,17 @@ import pandas as pd
 drivers = pd.read_csv("..\data\drivers.csv", usecols=["driverId", "driverRef", "number", "code", "forename", "surname"])
 circuits = pd.read_csv("..\data\circuits.csv", usecols=["circuitId", "circuitRef", "name", "location", "country"])
 races = pd.read_csv("..\data\\races.csv", usecols=["raceId", "year", "round", "circuitId", "name"])
-results = pd.read_csv("..\data\\results.csv",
-                      usecols=["resultId", "raceId", "driverId", "constructorId", "number", "grid", "position"])
+results = pd.read_csv("..\data\\results.csv", usecols=["resultId", "raceId", "driverId", "constructorId", "number", "grid", "position"])
 constructors = pd.read_csv("..\data\constructors.csv", usecols=["constructorId", "constructorRef", "name"])
 averageFinish = pd.read_csv("..\data\\average_finish.csv", usecols=["driverId", "averageFinish"])
 averageQuali = pd.read_csv("..\data\\average_quali.csv", usecols=["driverId", "averageQuali"])
+averageConstructorQuali = pd.read_csv("..\data\\constructor_average_quali.csv", usecols=["constructorId", "averageQuali"])
+averageConstructorFinish = pd.read_csv("..\data\\constructor_average_finish.csv", usecols=["constructorId", "averageFinish"])
 
 global numTeams
 teamsList = []
 driversList = []
 driverAssignment = {}
-
-
-# TODO get grid from season
-# TODO random grid
-# TODO random between certain dates?
 
 
 def menu():
@@ -41,9 +37,9 @@ def manualSetup():
     global numTeams
     numTeams = input("How many teams would you like to enter? ")
     for i in range(int(numTeams)):
-        id = int(input("Please enter Constructor ID: ")) - 1
-        teamsList.append(id)
-        print(constructors.at[id, "name"])
+        team = int(input("Please enter Constructor ID: ")) - 1
+        teamsList.append(team)
+        print(constructors.at[team, "name"])
 
     for i in range(int(numTeams)):
         print("Constructor:", constructors.at[teamsList[i], "name"])
@@ -67,7 +63,7 @@ def manualSetup():
 def fileSetup():
     print('')
     import csv
-    with open('..\data\config.csv', 'r') as csvfile:
+    with open('..\data\\2016_config.csv', 'r') as csvfile:
         config = list(csv.reader(csvfile, delimiter=','))
 
         lines = 0
@@ -88,75 +84,82 @@ def fileSetup():
             lines += 1
         print(circuits.at[circuitID, "name"] + ',', circuits.at[circuitID, "country"])
         global numTeams
-        numTeams = lines-1
+        numTeams = lines - 1
 
     simulate()
 
 
 def randomSetup():
-    print('TODO')
     from random import randrange
     global numTeams
     numTeams = input("How many teams would you like to enter? ")
 
     for i in range(int(numTeams)):
-        id = randrange(214)
-        teamsList.append(id)
-        #print(constructors.at[id, "name"])
+        team = randrange(213)
+        teamsList.append(team)
 
     for i in range(int(numTeams)):
         print("Constructor:", constructors.at[teamsList[i], "name"])
 
-        id1 = randrange(850)
+        id1 = randrange(849)
         driversList.append(id1)
         print(drivers.at[id1, "forename"], drivers.at[id1, "surname"])
 
-        id2 = randrange(850)
+        id2 = randrange(849)
         driversList.append(id2)
         print(drivers.at[id2, "forename"], drivers.at[id2, "surname"])
         print('')
         driverAssignment[teamsList[i]] = [id1, id2]
 
-    circuitID = randrange(77)
+    circuitID = randrange(76)
     print('')
     print(circuits.at[circuitID, "name"] + ',', circuits.at[circuitID, "country"])
     simulate()
 
 
 def simulate():
-    # display track
-    # generate int(numTracks)*2 circles
-    # colour in team colours
-    # assign driver label
+    # TODO make it look pretty :(
 
+    input("Press enter to simulate qualifying.")
     # qualify
     # print grid
     printGrid(quali())
 
+    input("Press enter to simulate race.")
     # race
     # print results
     printGrid(race())
-
-    # ????
 
 
 def printGrid(resultsDict):
     p = 1
     for key in resultsDict:
 
-        # print('DEBUG', resultsDict)
-        # print('DEBUG', key)
         print('P' + (str(p)))
         p = p + 1
-        print(drivers.at[key-1, "forename"], drivers.at[key-1, "surname"])
+        print(drivers.at[key - 1, "forename"], drivers.at[key - 1, "surname"])
 
         for k, v in driverAssignment.items():
-            if key-1 in v:
+            if key - 1 in v:
                 print(constructors.at[k, "name"])
-        # index = [k for k, v in driverAssignment.items() if i in v]
-        # print(constructors.at[index[0], "name"])
 
         print('')
+
+
+def identifyTeam(index):
+    found = False
+    # TODO there's some weird issue with the random setup misidentifying some drivers here, maybe to do with the driver ids in the csv
+    for k, v in driverAssignment.items():
+        if index - 1 in v:
+            constructorId = constructors.at[k, "constructorId"]
+            found = True
+            break
+
+    # trying to catch that weird error from the todo on 171
+    if not found:
+        constructorId = 1
+
+    return constructorId
 
 
 def quali():
@@ -164,13 +167,17 @@ def quali():
     for i in range(int(numTeams) * 2):  # for every driver on grid
         # read average quali from csv
         index = drivers.at[driversList[i], "driverId"]
-        qualiPerformance[index] = averageQuali.at[index-1, "averageQuali"]
 
-        #print('DEBUG', drivers.at[driversList[i], "surname"], averageQuali.at[index-1, "averageQuali"])
+        constructorId = identifyTeam(index)
+        # weighted by car performance
+        average = ((averageQuali.at[index - 1, "averageQuali"] * 0.25) + (
+                averageConstructorQuali.at[constructorId-1, "averageQuali"] * 0.75))
+
+        qualiPerformance[index] = average
+
     # sort dictionary by performance
     qualiPerformance = sorted(qualiPerformance, key=lambda i: int(qualiPerformance[i]))
-    # TODO implement a random tiebreak
-    # TODO add some constructor performance
+
     print("")
     print("QUALIFYING RESULTS")
     print("")
@@ -178,20 +185,25 @@ def quali():
 
 
 def race():
-    # ????
-    # boring way of doing it:
     # TODO add some input from quali
-    # TODO add some constructor performance
+    # TODO add a stat for positions gained/lost from quali
 
     racePerformance = {}
     for i in range(int(numTeams) * 2):  # for every driver on grid
-        # read average finish from csv
-        # TODO fix
+        # read average finish from csvs
         index = drivers.at[driversList[i], "driverId"]
-        racePerformance[index] = averageFinish.at[index-1, "averageFinish"]
+        constructorId = identifyTeam(index)
+
+        # not sure if this does what I want it to
+        # essentially trying to implement something like the 80/20 rule (e.g. car responsible for 80% of results)
+        # however - I changed it to 75/25 for more fun (80% car doesn't give the most exciting stats...)
+        average = ((averageFinish.at[index - 1, "averageFinish"] * 0.25) + (
+                averageConstructorFinish.at[constructorId-1, "averageFinish"] * 0.75))
+        racePerformance[index] = average
+
     # sort dictionary by performance
     racePerformance = sorted(racePerformance, key=lambda i: int(racePerformance[i]))
-    # TODO implement a random tiebreak
+
     print("")
     print("RACE RESULTS")
     print("")
@@ -199,4 +211,3 @@ def race():
 
 
 menu()
-# manualSetup()

@@ -1,5 +1,3 @@
-import csv
-
 import pandas as pd
 
 drivers = pd.read_csv("..\data\drivers.csv", usecols=["driverId", "driverRef", "number", "code", "forename", "surname"])

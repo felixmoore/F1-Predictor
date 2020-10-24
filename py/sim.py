@@ -63,7 +63,7 @@ def manualSetup():
 def fileSetup():
     print('')
     import csv
-    with open('..\data\\2016_config.csv', 'r') as csvfile:
+    with open('..\data\config.csv', 'r') as csvfile:
         config = list(csv.reader(csvfile, delimiter=','))
 
         lines = 0
@@ -195,8 +195,7 @@ def race():
         constructorId = identifyTeam(index)
 
         # not sure if this does what I want it to
-        # essentially trying to implement something like the 80/20 rule (e.g. car responsible for 80% of results)
-        # however - I changed it to 75/25 for more fun (80% car doesn't give the most exciting stats...)
+        # essentially the car/team is responsible for 75% of the results
         average = ((averageFinish.at[index - 1, "averageFinish"] * 0.25) + (
                 averageConstructorFinish.at[constructorId-1, "averageFinish"] * 0.75))
         racePerformance[index] = average
